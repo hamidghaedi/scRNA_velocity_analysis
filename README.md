@@ -303,5 +303,55 @@ adata.obs['clusters'] = adata.obs['clusters'].astype('category')
 ```
 
 ### Basic pre-processing
+```python
 scv.pl.proportions(adata, figsize=(18,2), save= 'basic_features_SRR12603783.png')
+```
+![basic_features_SRR12603783.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_proportions_basic_features_SRR12603783.png)
 
+After basic preprocessing (gene selection and normalization), we compute the first- and second-order moments (means and uncentered variances) for velocity estimation:
+
+```python
+scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=2000)
+#Filtered out 31130 genes that are detected 20 counts (shared).
+#Normalized count data: X, spliced, unspliced.
+#Extracted 2000 highly variable genes.
+#Logarithmized X.
+scv.pp.moments(adata, n_pcs=30, n_neighbors=30)
+#computing neighbors
+#    finished (0:00:06) --> added 
+#    'distances' and 'connectivities', weighted adjacency matrices (adata.obsp)
+#computing moments based on connectivities
+#    finished (0:00:01) --> added 
+#    'Ms' and 'Mu', moments of un/spliced abundances (adata.layers)
+```
+
+### Velocity Tools _ dynamic model
+The core of the software is the efficient and robust estimation of velocities, obtained with:
+
+```python
+scv.tl.recover_dynamics(adata)
+scv.tl.velocity(adata, mode='dynamical')
+scv.tl.velocity_graph(adata)
+
+#recovering dynamics (using 1/16 cores)
+#Error displaying widget: model not found
+#    finished (0:03:31) --> added 
+#    'fit_pars', fitted parameters for splicing dynamics (adata.var)
+#computing velocities
+#    finished (0:00:01) --> added 
+#    'velocity', velocity vectors for each individual cell (adata.layers)
+#computing velocity graph (using 1/16 cores)
+#Error displaying widget: model not found
+#    finished (0:00:11) --> added 
+#    'velocity_graph', sparse matrix with cosine correlations (adata.uns)
+```
+### Velocity stream plot
+
+```python
+scv.pl.velocity_embedding_stream(adata, basis="umap", color="SCT_snn_res.0.4", title= 'SRR12603783 [HG, MIBC]', save= 'srr12603783_velocity_stream.png')
+#computing velocity embedding
+#    finished (0:00:01) --> added
+#    'velocity_umap', embedded velocity vectors (adata.obsm)
+#saving figure to file ./figures/scvelo_srr12603783_velocity_stream.png
+```
+![scvelo_srr12603783_velocity_stream.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_velocity_stream.png)
