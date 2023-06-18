@@ -452,3 +452,12 @@ In our analysis of bladder cancer, we focused on five specific genes: EDN2, SLC2
 *MUC1*, similar to EDN2, exhibits low to moderate values in most parameters. Its relatively low transcription rate and splicing rate suggest a lesser impact on the transcriptional dynamics in bladder cancer. While MUC1 may not be as pronounced as other genes in the list, it could still have some influence on the disease.
 
 Overall, our analysis suggests that S100A2 is a key gene in bladder cancer development due to its high values in various parameters related to transcription and splicing. The other genes, including EDN2, SLC2A1, GBP1, and MUC1, may also contribute to the disease but to a lesser extent. Further investigation and experimental validation are necessary to fully understand the roles of these genes in bladder cancer and their potential as therapeutic targets or biomarkers.
+
+Let's look at the genes for each cluster of cells:
+```Python
+top_genes = adata.var['fit_likelihood'].sort_values(ascending=False).index[:300]
+scv.pl.heatmap(adata, var_names=top_genes, sortby='latent_time', col_color="SCT_snn_res.0.4", n_convolve=100 ,colorbar=True, save= "srr12603783_top_genes_kinetic_parameters.png")
+```
+![srr12603783_top_genes_kinetic_parameters.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_top_genes_kinetic_parameters.png)
+
+The same analyss for other HG MIBC samples and also NMIBC samples can be find in the notebook.
