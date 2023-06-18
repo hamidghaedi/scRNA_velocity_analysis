@@ -228,7 +228,7 @@ Convert("./scvelo_files/harmonized_seurat.h5Seurat", dest = "h5ad")
 ```
 RNA velocity analysis can accept either a single sample or an integrated object as input. When examining the cell transition between sub-clusters of cells, our objective is to observe the transitions between groups of cells present in the dataset. Integrating samples into one integrated object allows us to combine cells from different samples into a single entity. This approach has both advantages and disadvantages. The advantage is that we have a more diverse set of cells to analyze. However, the disadvantage is that each sample is unique due to tumor heterogeneity, and studying them separately provides valuable insights. In this case, we will not be analyzing the integrated object, although we have generated one using the code mentioned above.
 
-The rest of analysis is performed in python environment (notebook ....):
+The rest of analysis is performed in python environment ([notebook](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/scvelo.ipynb)):
 
 ```python
 #import libs
@@ -460,4 +460,4 @@ scv.pl.heatmap(adata, var_names=top_genes, sortby='latent_time', col_color="SCT_
 ```
 ![srr12603783_top_genes_kinetic_parameters.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_heatmap_srr12603783_top_genes_kinetic_parameters.png)
 
-The same analyses for other HG MIBC samples and also NMIBC samples can be find in the notebook.
+The same analyses for other HG MIBC samples and also NMIBC samples can be find in the [notebook](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/scvelo.ipynb).
