@@ -415,4 +415,40 @@ The above code generates a plot , which I askip that for visualization here.But 
 |    EDN2 |  0.110540 | 0.805942 | 16.574118 | 0.347824 |    3.875601 |  0.035237 |  0.010551 |       0.403489 | 0.000004 |    0.0 |             0.0 |     0.468513 |     0.031373 |     1.050915 |              1.050940 | 1.977689 |
 |  SLC2A1 |  0.548495 | 3.259899 | 15.706002 | 0.256389 |   12.335837 |  0.019384 |  0.046016 |       3.556889 | 0.339018 |    0.0 |             0.0 |     0.497239 |     0.153646 |     9.316565 |              0.391465 | 4.524540 |
 
+In the table:
 
+*fit_alpha (Transcription Rate)*: A high value indicates a high transcription rate, suggesting that the gene is actively transcribed, leading to higher mRNA production. Conversely, a low value suggests a lower transcription rate and potentially lower mRNA levels.
+
+*fit_beta (Splicing Rate)*: A high value indicates a high splicing rate, implying that the gene undergoes frequent splicing, resulting in efficient production of mature mRNA. A low value suggests slower or less frequent splicing.
+
+*fit_gamma (Degradation Rate)*: A high value suggests a rapid degradation rate for the gene's mRNA. This could result in lower mRNA abundance or shorter mRNA half-life. Conversely, a low value indicates a slower degradation rate and potentially higher mRNA stability.
+
+*fit_t_ (Switching Time Point)*: A high value indicates a late switching time point, suggesting that the gene is activated or deactivated at a later stage of cellular differentiation or other biological processes. A low value suggests an early switching time point.
+
+*fit_scaling (Scaling Parameter)*: A high value indicates a larger scaling factor used to adjust for under-represented unspliced reads. This suggests that the gene has a relatively higher number of unspliced transcripts compared to the rest of the dataset. A low value suggests a smaller scaling factor and potentially fewer unspliced transcripts.
+
+*fit_std_u and fit_std_s (Standard Deviations)*: These columns represent the standard deviations of unspliced and spliced reads, respectively. A high value indicates greater variability or dispersion in the abundance of unspliced or spliced transcripts for the gene. Conversely, a low value suggests less variability.
+
+*fit_likelihood*: A high value indicates a better fit of the dynamical model to the data for the gene, suggesting that the model accurately captures the transcriptional dynamics. A low value suggests a poorer fit and potential discrepancies between the model and the actual data.
+
+*fit_steady_u and fit_steady_s (Steady-State Levels)*: A high value in either column indicates a higher abundance of the respective transcript type (unspliced or spliced) at the steady state. This suggests a potentially important role for the gene in maintaining stable expression levels. A low value indicates lower steady-state levels.
+
+*fit_pval_steady_u and fit_pval_steady_s (P-values for Steady-State Levels)*: A high value in either column indicates a significant difference in the steady-state levels compared to a reference or null hypothesis. This suggests that the gene's expression at the steady state is distinct and potentially regulated differently. A low value suggests no significant difference.
+
+*fit_variance*: A high value indicates greater variability or uncertainty in the estimated parameters and transcriptional dynamics for the gene. This could be due to complex regulation or heterogeneity. A low value suggests lower variability and more consistent behavior.
+
+*fit_alignment_scaling*: A high value indicates a larger scaling factor used to align the gene-wise latent times to a universal, gene-shared latent time. This suggests a more substantial deviation from the shared latent time in the dynamical model. A low value indicates a smaller deviation and closer alignment to the shared latent time.
+
+In our analysis of bladder cancer, we focused on five specific genes: EDN2, SLC2A1, GBP1, S100A2, and MUC1. These genes play important roles in the transcriptional dynamics and splicing kinetics of bladder cancer cells.
+
+*EDN2*, while showing moderate values in most parameters, may still have relevance in bladder cancer development. Its transcription rate (fit_alpha) and splicing rate (fit_beta) indicate that it contributes to the regulation of gene expression in the context of bladder cancer. Although its impact may not be as strong as other genes, it could still play a role in the disease.
+
+*SLC2A1*, on the other hand, exhibits higher values in multiple parameters. Its elevated transcription rate and splicing rate suggest that SLC2A1 is actively transcribed and spliced in bladder cancer cells. This gene's expression levels may vary significantly, indicating its involvement in the disease process.
+
+*GBP1*, with low to moderate values across most parameters, may have a less prominent role in bladder cancer development compared to other genes. Its relatively low transcription rate and splicing rate suggest a lesser impact on the transcriptional dynamics. However, further studies are needed to determine its specific role in bladder cancer.
+
+*S100A2* emerges as a gene with high values in multiple parameters, indicating its potential significance in bladder cancer. The elevated transcription rate, splicing rate, and standard deviation of spliced reads suggest that S100A2 plays a crucial role in the transcriptional dynamics and splicing kinetics of bladder cancer cells. Its high likelihood and steady-state levels further support its involvement in the disease development.
+
+*MUC1*, similar to EDN2, exhibits low to moderate values in most parameters. Its relatively low transcription rate and splicing rate suggest a lesser impact on the transcriptional dynamics in bladder cancer. While MUC1 may not be as pronounced as other genes in the list, it could still have some influence on the disease.
+
+Overall, our analysis suggests that S100A2 is a key gene in bladder cancer development due to its high values in various parameters related to transcription and splicing. The other genes, including EDN2, SLC2A1, GBP1, and MUC1, may also contribute to the disease but to a lesser extent. Further investigation and experimental validation are necessary to fully understand the roles of these genes in bladder cancer and their potential as therapeutic targets or biomarkers.
