@@ -389,4 +389,30 @@ scv.pl.scatter(adata, color='latent_time', color_map='gnuplot', size=80, save= "
 ```
 ![srr12603783_latent_time.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_latent_time.png)
 
+### Kinetic rate paramters
+The rates of RNA transcription, splicing and degradation are estimated without the need of any experimental data.
+
+They can be useful to better understand the cell identity and phenotypic heterogeneity.
+```python
+df = adata.var
+df = df[(df['fit_likelihood'] > .1) & df['velocity_genes'] == True]
+
+kwargs = dict(xscale='log', fontsize=16)
+with scv.GridSpec(ncols=3) as pl:
+    pl.hist(df['fit_alpha'], xlabel='transcription rate', **kwargs)
+    pl.hist(df['fit_beta'] * df['fit_scaling'], xlabel='splicing rate', xticks=[.1, .4, 1], **kwargs)
+    pl.hist(df['fit_gamma'], xlabel='degradation rate', xticks=[.1, .4, 1], **kwargs)
+
+scv.get_df(adata, 'fit*', dropna=True).head()
+```
+The above code generates a plot , which I askip that for visualization here.But lt's take a look at the result table:
+
+|        |  fit_r2 | fit_alpha | fit_beta | fit_gamma |   fit_t_ | fit_scaling | fit_std_u | fit_std_s | fit_likelihood |   fit_u0 | fit_s0 | fit_pval_steady | fit_steady_u | fit_steady_s | fit_variance | fit_alignment_scaling |
+|--------:|----------:|---------:|----------:|---------:|------------:|----------:|----------:|---------------:|---------:|-------:|----------------:|-------------:|-------------:|-------------:|----------------------:|----------|
+|    ENO1 |  0.170526 | 3.296458 | 13.728501 | 0.156885 |    7.864689 |  0.026324 |  0.081372 |       3.353864 | 0.219171 |    0.0 |             0.0 |     0.496356 |     0.237947 |     9.392603 |              1.058804 | 2.702026 |
+| CAMK2N1 |  0.094471 | 1.098705 | 16.866885 | 0.165689 |    7.069970 |  0.012907 |  0.018368 |       0.821829 | 0.181957 |    0.0 |             0.0 |     0.476764 |     0.057117 |     3.062095 |              1.389385 | 2.526427 |
+|    GALE |  0.039663 | 0.127367 |  2.923022 | 0.199394 |    7.737945 |  0.268056 |  0.020084 |       0.129809 | 0.138851 |    0.0 |             0.0 |     0.400852 |     0.067361 |     0.422462 |              2.089054 | 2.294053 |
+|    EDN2 |  0.110540 | 0.805942 | 16.574118 | 0.347824 |    3.875601 |  0.035237 |  0.010551 |       0.403489 | 0.000004 |    0.0 |             0.0 |     0.468513 |     0.031373 |     1.050915 |              1.050940 | 1.977689 |
+|  SLC2A1 |  0.548495 | 3.259899 | 15.706002 | 0.256389 |   12.335837 |  0.019384 |  0.046016 |       3.556889 | 0.339018 |    0.0 |             0.0 |     0.497239 |     0.153646 |     9.316565 |              0.391465 | 4.524540 |
+
 
