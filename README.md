@@ -59,6 +59,10 @@ done
 ```
 Now we can  continue with `velocyto` : 
 
+```shell
+velocyto run10x -@ 16 --samtools-memory 80000 -m /home/ghaedi/projects/def-gooding-ab/ghaedi/sc/hg38_rmsk.gtf $d /home/ghaedi/projects/def-gooding-ab/ghaedi/sc/refdata-gex-GRCh38-2020-A/genes/genes.gtf
+```
+
 ## 2) pre-processing in R 
 
 ```r
@@ -68,59 +72,236 @@ Now we can  continue with `velocyto` :
 library(Seurat)
 library(SeuratDisk)
 library(SeuratWrappers)
+library(harmony)
+library(dplyr)
+library(ggplot2)
+library(SCP)
 
-# Reading the data and doing pre-processing with Seurat
-## example data 
-curl::curl_download(url = 'http://pklab.med.harvard.edu/velocyto/mouseBM/SCG71.loom', destfile = 'SCG71.loom')
-#The following step needs velocytoR to be installed  
-ldat <- ReadVelocity(file = "SCG71.loom")
-# convert object to Seurat obj
-bm <- as.Seurat(x = ldat)
+# preparing epi-seurat cell ids to be used with loom files
+# subset su file to only include epi cells:
 
-# pre-processing in Seurat obj
-bm[["RNA"]] <- bm[["spliced"]]
-bm <- SCTransform(bm)
-bm <- RunPCA(bm)
-bm <- RunUMAP(bm, dims = 1:20)
-bm <- FindNeighbors(bm, dims = 1:20)
-bm <- FindClusters(bm)
-DefaultAssay(bm) <- "RNA"
+## on CC
+epi_seurat <- readRDS("~/projects/def-gooding-ab/ghaedi/sc/epi_seurat.RDS")
+
+## on local
+epi_seurat <- readRDS("~/scRNA/github/epi_seurat.RDS")
+
+# defining cells 
+epi_cells <- rownames(epi_seurat@meta.data)
+
+# Renaming idents
+epi_seurat <- RenameIdents(object = epi_seurat, 
+                           "0" = "basal_cell",
+                           "1" = "cancer_associated_luminal_cell",
+                           "2" = "differentiated_luminal_cell",
+                           "3" = "unique_luminal_cell",
+                           "4" = "immunomodulatory_luminal_cell",
+                           "5" = "adhesion_signaling_luminal_cell")
+
+
+# changing cell names to match with epi_cells
+substr(epi_cells,12,12) <- ":"
+epi_cells <- substr(epi_cells, 1, nchar(epi_cells)-2)
+epi_cells <- paste0(epi_cells, "x")
+
+# adding modified name to the metadatad
+epi_seurat@meta.data$cells <- epi_cells
+epi_seurat$clusters <- Idents(epi_seurat)
+
+# saving metadata 
+epiMet <- epi_seurat@meta.data
+epiMet <- epiMet[, colnames(epiMet) %in% c("cells", "gender", "age", "Grade", "Invasiveness", "clusters")]
+rownames(epiMet) <- epiMet$cells
+
+#______ read files into Seurat objects on CC
+
+# Reading loom files
+base_dir <- "/home/ghaedi/projects/def-gooding-ab/ghaedi/sc/raw/cellranger_outs/"
+# create list of samples
+samples <- list.files(base_dir)
+
+
+# read files inot Seurat objects on CC
+for (sample in samples){
+  print(paste0(sample))
+  loom_file <- paste0(base_dir,sample, "/velocyto/", sample, ".loom")
+  if (file.exists(loom_file)) {
+    ldat <- ReadVelocity(file = loom_file)
+    # convert object to Seurat obj
+    su <- as.Seurat(x = ldat)
+    # define a cells column 
+    su$cells <- rownames(su@meta.data)
+    # Subset seurat obj to include only epi cells
+    su <- subset(su, subset = cells %in% epi_cells)
+    #
+    suMet <- su@meta.data
+    # merging meta data
+    suMet <- dplyr::left_join(suMet, epiMet, by = 'cells')
+    rownames(suMet) <- suMet$cells
+    #
+    su@meta.data <- suMet
+    # pre-processing in Seurat obj
+    su[["RNA"]] <- su[["spliced"]]
+    # 
+    assign(sample, su)
+    } else {
+    print(paste0("Skipping file: ", sample))
+  }
+}
+
+#______ read files into Seurat objects on local machine
+# Reading loom files
+base_dir <- "C:/Users/qaedi/OneDrive - Queen's University/Documents/scRNA_velocity/loom_files"
+# create list of samples
+samples <- list.files(base_dir)
+
+
+# read files inot Seurat objects on CC
+for (sample in samples){
+  print(paste0(sample))
+  loom_file <- sample
+  if (file.exists(loom_file)) {
+    ldat <- ReadVelocity(file = loom_file)
+    # convert object to Seurat obj
+    su <- as.Seurat(x = ldat)
+    # define a cells column 
+    su$cells <- rownames(su@meta.data)
+    # Subset seurat obj to include only epi cells
+    su <- subset(su, subset = cells %in% epi_cells)
+    #
+    suMet <- su@meta.data
+    # merging meta data
+    suMet <- dplyr::left_join(suMet, epiMet, by = 'cells')
+    rownames(suMet) <- suMet$cells
+    #
+    su@meta.data <- suMet
+    su[["RNA"]] <- su[["spliced"]]
+    assign(sample, su)
+  } else {
+    print(paste0("Skipping file: ", sample))
+  }
+}
+
+
+
+# now merging all objects into one Seurat obj
+
+merged_seurat <- merge(x = SRR12603782,
+                       y = c(SRR12603783,
+                             SRR12603784,
+                             SRR12603785))
+
+# setting active assay
+#DefaultAssay(merged_seurat) <- "RNA"
+# adding sample name
+merged_seurat$orig.ident <- substr(merged_seurat$cells,1,11)
+
+# Integration: Preprocessing
+# Perform log-normalization and feature selection, as well as SCT normalization on global object
+merged_seurat <- merged_seurat %>%
+  NormalizeData() %>%
+  FindVariableFeatures(selection.method = "vst", nfeatures = 3000) %>% 
+  ScaleData() %>%
+  SCTransform(vars.to.regress = c("orig.ident"))
+
+
+# Calculate PCs using variable features determined by SCTransform (3000 by default)
+merged_seurat <- RunPCA(merged_seurat, assay = "SCT", npcs = 50)
+
+
+# Integration
+harmonized_seurat <- RunHarmony(merged_seurat, 
+                                group.by.vars = c("orig.ident", "gender"), 
+                                reduction = "pca", assay.use = "SCT", reduction.save = "harmony")
+
+harmonized_seurat <- RunUMAP(harmonized_seurat, reduction = "harmony", assay = "SCT", dims = 1:40)
+# to set reduction to harmony and finding the clusters
+harmonized_seurat <- FindNeighbors(object = harmonized_seurat, reduction = "harmony")
+harmonized_seurat <- FindClusters(harmonized_seurat, resolution = c(0.1, 0.2, 0.4, 0.6, 0.8))
+#
+DefaultAssay(harmonized_seurat) <- "RNA"
+
+
 # saving and converting seurat obj inot other format
-SaveH5Seurat(bm, filename = "mouseBM.h5Seurat")
-Convert("mouseBM.h5Seurat", dest = "h5ad")
-
+SaveH5Seurat(harmonized_seurat, filename = "./scvelo_files/harmonized_seurat.h5Seurat")
+Convert("./scvelo_files/harmonized_seurat.h5Seurat", dest = "h5ad")
 ```
-## 3) velocity analysis in python
+RNA velocity analysis can accept either a single sample or an integrated object as input. When examining the cell transition between sub-clusters of cells, our objective is to observe the transitions between groups of cells present in the dataset. Integrating samples into one integrated object allows us to combine cells from different samples into a single entity. This approach has both advantages and disadvantages. The advantage is that we have a more diverse set of cells to analyze. However, the disadvantage is that each sample is unique due to tumor heterogeneity, and studying them separately provides valuable insights. In this case, we will not be analyzing the integrated object, although we have generated one using the code mentioned above.
+
+The rest of analysis is performed in python environment (notebook ....):
 
 ```python
+#import libs
+import os
 import scvelo as scv
-adata = scv.read("mouseBM.h5ad")
-# to see AnnData structure
+import pandas as pd
+import scanpy as sc
+import matplotlib.pyplot as plt
+import statsmodels.graphics.mosaicplot as mplt
+#import pyreader
+
+scv.settings.verbosity = 3  # show errors(0), warnings(1), info(2), hints(3)
+scv.settings.presenter_view = True  # set max width size for presenter view
+scv.settings.set_figure_params('scvelo')  # for beautified visualization
+
+# setting working directory
+os.chdir("C:\\Users\\qaedi\\OneDrive - Queen's University\\Documents\\scRNA_velocity\\scvelo_files")
+# setting working directory
+os.chdir("C:\\Users\\qaedi\\OneDrive - Queen's University\\Documents\\scRNA_velocity\\scvelo_files")
+```
+
+## SRR12603783 HG MIBC
+```python
+# reading file
+adata = scv.read("SRR12603783.h5ad")
 adata
 
-## Pre-Processing
-scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=2000)
-scv.pp.moments(adata, n_pcs=30, n_neighbors=30)
-scv.tl.velocity(adata)
-scv.tl.velocity_graph(adata)
-scv.pl.velocity_embedding_stream(adata, basis="umap", color="seurat_clusters")
-```
-![]()
+#AnnData object with n_obs × n_vars = 6545 × 36601
+#    obs: 'orig.ident', 'nCount_spliced', 'nFeature_spliced', 'nCount_unspliced', #'nFeature_unspliced', 'nCount_ambiguous', 'nFeature_ambiguous', 'cells', 'gender', 'age', 'Grade', #'Invasiveness', 'clusters', 'nCount_RNA', 'nFeature_RNA', 'nCount_SCT', 'nFeature_SCT', #'SCT_snn_res.0.1', 'SCT_snn_res.0.2', 'SCT_snn_res.0.4', 'SCT_snn_res.0.6', 'SCT_snn_res.0.8', #'seurat_clusters', 'epi_cluster'
+#    var: 'features', 'ambiguous_features', 'spliced_features', 'unspliced_features'
+#    obsm: 'X_umap'
+#    layers: 'ambiguous', 'spliced', 'unspliced'
 
-```python
-scv.pl.velocity_embedding(adata, basis="umap", color="seurat_clusters", arrow_length=3, arrow_size=2, dpi=120)
-```
-![]()
 
-```python
-scv.tl.recover_dynamics(adata)
-scv.tl.latent_time(adata)
-scv.pl.scatter(adata, color="latent_time", color_map="gnuplot")
-```
-![]()
+# To see cells in each clusters
+adata.obs.clusters.value_counts()
+#1    2626
+#4    2127
+#0     795
+#2     703
+#5     152
+#3     142
+#Name: clusters, dtype: int64
 
-```python
-top_genes = adata.var["fit_likelihood"].sort_values(ascending=False).index[:300]
-scv.pl.heatmap(adata, var_names=top_genes, sortby="latent_time", col_color="seurat_clusters", n_convolve=100)
+# Define a dictionary mapping the numbers to labels
+label_mapping = {
+    0: 'basal_cell',
+    1: 'cancer_associated_luminal_cell',
+    2: 'differentiated_luminal_cell',
+    3: 'unique_luminal_cell',
+    4: 'immunomodulatory_luminal_cell',
+    5: 'adhesion_signaling_luminal_cell'
+}
+
+# Replace the numbers with their corresponding labels
+adata.obs['clusters'] =adata.obs['clusters'].replace(label_mapping)
+adata.obs['clusters'] = adata.obs['clusters'].astype('category')
+
+# Define a dictionary mapping the numbers to labels
+label_mapping = {
+    0: 'basal_cell',
+    1: 'cancer_associated_luminal_cell',
+    2: 'differentiated_luminal_cell',
+    3: 'unique_luminal_cell',
+    4: 'immunomodulatory_luminal_cell',
+    5: 'adhesion_signaling_luminal_cell'
+}
+
+# Replace the numbers with their corresponding labels
+adata.obs['clusters'] =adata.obs['clusters'].replace(label_mapping)
+adata.obs['clusters'] = adata.obs['clusters'].astype('category')
 ```
-![]()
+
+### Basic pre-processing
+scv.pl.proportions(adata, figsize=(18,2), save= 'basic_features_SRR12603783.png')
+
