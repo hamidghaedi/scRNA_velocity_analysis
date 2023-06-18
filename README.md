@@ -458,6 +458,6 @@ Let's look at the genes for each cluster of cells:
 top_genes = adata.var['fit_likelihood'].sort_values(ascending=False).index[:300]
 scv.pl.heatmap(adata, var_names=top_genes, sortby='latent_time', col_color="SCT_snn_res.0.4", n_convolve=100 ,colorbar=True, save= "srr12603783_top_genes_kinetic_parameters.png")
 ```
-![srr12603783_top_genes_kinetic_parameters.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_top_genes_kinetic_parameters.png)
+![srr12603783_top_genes_kinetic_parameters.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_heatmap_srr12603783_top_genes_kinetic_parameters.png)
 
-The same analyss for other HG MIBC samples and also NMIBC samples can be find in the notebook.
+The same analyses for other HG MIBC samples and also NMIBC samples can be find in the notebook.
