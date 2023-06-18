@@ -377,7 +377,7 @@ The most fine-grained resolution of the velocity vector field we get at single-c
 ```python
 scv.pl.velocity_embedding(adata, basis="umap", color="seurat_clusters", arrow_length=3, arrow_size=2, dpi=120, title= 'SRR12603783 [HG, MIBC]', save= 'srr12603783_velocity_embedding.png')
 ```
-![srr12603783_velocity_embedding.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_velocity_embedding.png)
+![srr12603783_velocity_embedding.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_velocity_embedding.png)
 
 ### Latent time and top genes
 
@@ -387,7 +387,7 @@ The dynamical model recovers the latent time of the underlying cellular processe
 scv.tl.latent_time(adata)
 scv.pl.scatter(adata, color='latent_time', color_map='gnuplot', size=80, save= "srr12603783_latent_time.png")
 ```
-![srr12603783_latent_time.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_latent_time.png)
+![srr12603783_latent_time.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_latent_time.png)
 
 ### Kinetic rate paramters
 The rates of RNA transcription, splicing and degradation are estimated without the need of any experimental data.
