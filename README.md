@@ -355,3 +355,38 @@ scv.pl.velocity_embedding_stream(adata, basis="umap", color="SCT_snn_res.0.4", t
 #saving figure to file ./figures/scvelo_srr12603783_velocity_stream.png
 ```
 ![scvelo_srr12603783_velocity_stream.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/scvelo_srr12603783_velocity_stream.png)
+
+```python
+# To see the proportion of different cell types in sample specefic clsuters:
+# Plot the stacked bar chart
+plt.figure(figsize=(10, 6))
+data.plot(kind='bar', stacked=True)
+plt.xlabel('sample-specefic clsuters')
+plt.ylabel('Counts')
+plt.title('')
+plt.legend(loc='upper right')
+# Save the plot as an image file
+plt.savefig('./figures/srr12603783_frequency_sample_clsuter_in_cell_clusters.png')
+
+plt.show()
+```
+![srr12603783_frequency_sample_clsuter_in_cell_clusters.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_frequency_sample_clsuter_in_cell_clusters.png)
+
+
+The most fine-grained resolution of the velocity vector field we get at single-cell level, with each arrow showing the direction and speed of movement of an individual cell.
+```python
+scv.pl.velocity_embedding(adata, basis="umap", color="seurat_clusters", arrow_length=3, arrow_size=2, dpi=120, title= 'SRR12603783 [HG, MIBC]', save= 'srr12603783_velocity_embedding.png')
+```
+![srr12603783_velocity_embedding.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_velocity_embedding.png)
+
+### Latent time and top genes
+
+The dynamical model recovers the latent time of the underlying cellular processes. This latent time represents the cell’s internal clock and approximates the real time experienced by cells as they differentiate, based only on its transcriptional dynamics.
+
+```python
+scv.tl.latent_time(adata)
+scv.pl.scatter(adata, color='latent_time', color_map='gnuplot', size=80, save= "srr12603783_latent_time.png")
+```
+![srr12603783_latent_time.png](https://github.com/hamidghaedi/scRNA_velocity_analysis/blob/main/image/srr12603783_latent_time.png)
+
+
